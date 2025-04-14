@@ -7,6 +7,8 @@ import {
   tasks, type Task, type InsertTask,
   activities, type Activity, type InsertActivity
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -54,89 +56,35 @@ export interface IStorage {
   createActivity(activity: InsertActivity): Promise<Activity>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private clients: Map<number, Client>;
-  private projects: Map<number, Project>;
-  private businessPlans: Map<number, BusinessPlan>;
-  private expenses: Map<number, Expense>;
-  private tasks: Map<number, Task>;
-  private activities: Map<number, Activity>;
-
-  private currentUserId: number;
-  private currentClientId: number;
-  private currentProjectId: number;
-  private currentBusinessPlanId: number;
-  private currentExpenseId: number;
-  private currentTaskId: number;
-  private currentActivityId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.clients = new Map();
-    this.projects = new Map();
-    this.businessPlans = new Map();
-    this.expenses = new Map();
-    this.tasks = new Map();
-    this.activities = new Map();
-
-    this.currentUserId = 1;
-    this.currentClientId = 1;
-    this.currentProjectId = 1;
-    this.currentBusinessPlanId = 1;
-    this.currentExpenseId = 1;
-    this.currentTaskId = 1;
-    this.currentActivityId = 1;
-    
-    // Initialize with demo data
-    this.initializeDemoData();
-  }
-
-  private initializeDemoData() {
-    // Create demo user
-    const demoUser: InsertUser = {
-      username: "demo",
-      password: "demo123",
-      fullName: "Sarah Johnson",
-      email: "sarah@example.com",
-      planType: "Premium",
-    };
-    this.createUser(demoUser);
-  }
-
+export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   // Client methods
   async getClients(userId: number): Promise<Client[]> {
-    return Array.from(this.clients.values()).filter(
-      (client) => client.userId === userId,
-    );
+    return await db.select().from(clients).where(eq(clients.userId, userId));
   }
 
   async getClient(id: number): Promise<Client | undefined> {
-    return this.clients.get(id);
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client;
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    const id = this.currentClientId++;
-    const client: Client = { ...insertClient, id };
-    this.clients.set(id, client);
+    const [client] = await db.insert(clients).values(insertClient).returning();
     
     // Create activity
     await this.createActivity({
@@ -152,38 +100,47 @@ export class MemStorage implements IStorage {
   }
 
   async updateClient(id: number, clientUpdate: Partial<InsertClient>): Promise<Client | undefined> {
-    const client = this.clients.get(id);
-    if (!client) {
-      return undefined;
-    }
-    
-    const updatedClient = { ...client, ...clientUpdate };
-    this.clients.set(id, updatedClient);
+    const [updatedClient] = await db
+      .update(clients)
+      .set(clientUpdate)
+      .where(eq(clients.id, id))
+      .returning();
     
     return updatedClient;
   }
 
   async deleteClient(id: number): Promise<boolean> {
-    return this.clients.delete(id);
+    const result = await db.delete(clients).where(eq(clients.id, id)).returning();
+    return result.length > 0;
   }
 
   // Project methods
   async getProjects(userId: number, clientId?: number): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(
-      (project) => 
-        project.userId === userId && 
-        (clientId === undefined || project.clientId === clientId)
-    );
+    if (clientId) {
+      return await db
+        .select()
+        .from(projects)
+        .where(
+          and(
+            eq(projects.userId, userId),
+            eq(projects.clientId, clientId)
+          )
+        );
+    }
+    
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId));
   }
 
   async getProject(id: number): Promise<Project | undefined> {
-    return this.projects.get(id);
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const id = this.currentProjectId++;
-    const project: Project = { ...insertProject, id };
-    this.projects.set(id, project);
+    const [project] = await db.insert(projects).values(insertProject).returning();
     
     // Create activity
     await this.createActivity({
@@ -199,36 +156,32 @@ export class MemStorage implements IStorage {
   }
 
   async updateProject(id: number, projectUpdate: Partial<InsertProject>): Promise<Project | undefined> {
-    const project = this.projects.get(id);
-    if (!project) {
-      return undefined;
-    }
-    
-    const updatedProject = { ...project, ...projectUpdate };
-    this.projects.set(id, updatedProject);
+    const [updatedProject] = await db
+      .update(projects)
+      .set(projectUpdate)
+      .where(eq(projects.id, id))
+      .returning();
     
     return updatedProject;
   }
 
   async deleteProject(id: number): Promise<boolean> {
-    return this.projects.delete(id);
+    const result = await db.delete(projects).where(eq(projects.id, id)).returning();
+    return result.length > 0;
   }
 
   // Business Plan methods
   async getBusinessPlans(userId: number): Promise<BusinessPlan[]> {
-    return Array.from(this.businessPlans.values()).filter(
-      (plan) => plan.userId === userId,
-    );
+    return await db.select().from(businessPlans).where(eq(businessPlans.userId, userId));
   }
 
   async getBusinessPlan(id: number): Promise<BusinessPlan | undefined> {
-    return this.businessPlans.get(id);
+    const [plan] = await db.select().from(businessPlans).where(eq(businessPlans.id, id));
+    return plan;
   }
 
   async createBusinessPlan(insertPlan: InsertBusinessPlan): Promise<BusinessPlan> {
-    const id = this.currentBusinessPlanId++;
-    const plan: BusinessPlan = { ...insertPlan, id };
-    this.businessPlans.set(id, plan);
+    const [plan] = await db.insert(businessPlans).values(insertPlan).returning();
     
     // Create activity
     await this.createActivity({
@@ -244,49 +197,60 @@ export class MemStorage implements IStorage {
   }
 
   async updateBusinessPlan(id: number, planUpdate: Partial<InsertBusinessPlan>): Promise<BusinessPlan | undefined> {
-    const plan = this.businessPlans.get(id);
-    if (!plan) {
-      return undefined;
+    // Make sure to update lastUpdated
+    const updateData = {
+      ...planUpdate,
+      lastUpdated: new Date()
+    };
+    
+    const [updatedPlan] = await db
+      .update(businessPlans)
+      .set(updateData)
+      .where(eq(businessPlans.id, id))
+      .returning();
+    
+    if (updatedPlan) {
+      // Create activity
+      await this.createActivity({
+        type: "business_plan_updated",
+        description: `Updated business plan: ${updatedPlan.name}`,
+        timestamp: new Date(),
+        entityId: updatedPlan.id,
+        entityType: "business_plan",
+        userId: updatedPlan.userId,
+      });
     }
-    
-    const updatedPlan = { ...plan, ...planUpdate, lastUpdated: new Date() };
-    this.businessPlans.set(id, updatedPlan);
-    
-    // Create activity
-    await this.createActivity({
-      type: "business_plan_updated",
-      description: `Updated business plan: ${plan.name}`,
-      timestamp: new Date(),
-      entityId: plan.id,
-      entityType: "business_plan",
-      userId: plan.userId,
-    });
     
     return updatedPlan;
   }
 
   async deleteBusinessPlan(id: number): Promise<boolean> {
-    return this.businessPlans.delete(id);
+    const result = await db.delete(businessPlans).where(eq(businessPlans.id, id)).returning();
+    return result.length > 0;
   }
 
   // Expense methods
   async getExpenses(userId: number, clientId?: number, projectId?: number): Promise<Expense[]> {
-    return Array.from(this.expenses.values()).filter(
-      (expense) => 
-        expense.userId === userId && 
-        (clientId === undefined || expense.clientId === clientId) &&
-        (projectId === undefined || expense.projectId === projectId)
-    );
+    let query = db.select().from(expenses).where(eq(expenses.userId, userId));
+    
+    if (clientId) {
+      query = query.where(eq(expenses.clientId!, clientId));
+    }
+    
+    if (projectId) {
+      query = query.where(eq(expenses.projectId!, projectId));
+    }
+    
+    return await query;
   }
 
   async getExpense(id: number): Promise<Expense | undefined> {
-    return this.expenses.get(id);
+    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return expense;
   }
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    const id = this.currentExpenseId++;
-    const expense: Expense = { ...insertExpense, id };
-    this.expenses.set(id, expense);
+    const [expense] = await db.insert(expenses).values(insertExpense).returning();
     
     // Create activity
     await this.createActivity({
@@ -302,59 +266,66 @@ export class MemStorage implements IStorage {
   }
 
   async updateExpense(id: number, expenseUpdate: Partial<InsertExpense>): Promise<Expense | undefined> {
-    const expense = this.expenses.get(id);
-    if (!expense) {
-      return undefined;
-    }
-    
-    const updatedExpense = { ...expense, ...expenseUpdate };
-    this.expenses.set(id, updatedExpense);
+    const [updatedExpense] = await db
+      .update(expenses)
+      .set(expenseUpdate)
+      .where(eq(expenses.id, id))
+      .returning();
     
     return updatedExpense;
   }
 
   async deleteExpense(id: number): Promise<boolean> {
-    return this.expenses.delete(id);
+    const result = await db.delete(expenses).where(eq(expenses.id, id)).returning();
+    return result.length > 0;
   }
 
   // Task methods
   async getTasks(userId: number, completed?: boolean): Promise<Task[]> {
-    return Array.from(this.tasks.values()).filter(
-      (task) => 
-        task.userId === userId && 
-        (completed === undefined || task.completed === completed)
-    );
+    let query = db.select().from(tasks).where(eq(tasks.userId, userId));
+    
+    if (completed !== undefined) {
+      query = query.where(eq(tasks.completed, completed));
+    }
+    
+    return await query;
   }
 
   async getTask(id: number): Promise<Task | undefined> {
-    return this.tasks.get(id);
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
   }
 
   async createTask(insertTask: InsertTask): Promise<Task> {
-    const id = this.currentTaskId++;
-    const task: Task = { ...insertTask, id };
-    this.tasks.set(id, task);
+    const [task] = await db.insert(tasks).values(insertTask).returning();
     return task;
   }
 
   async updateTask(id: number, taskUpdate: Partial<InsertTask>): Promise<Task | undefined> {
-    const task = this.tasks.get(id);
-    if (!task) {
-      return undefined;
+    // Get the task first to check if we're marking it as completed
+    let wasCompleted = false;
+    if (taskUpdate.completed) {
+      const [existingTask] = await db.select().from(tasks).where(eq(tasks.id, id));
+      if (existingTask) {
+        wasCompleted = !existingTask.completed && taskUpdate.completed;
+      }
     }
     
-    const updatedTask = { ...task, ...taskUpdate };
-    this.tasks.set(id, updatedTask);
+    const [updatedTask] = await db
+      .update(tasks)
+      .set(taskUpdate)
+      .where(eq(tasks.id, id))
+      .returning();
     
-    if (taskUpdate.completed && taskUpdate.completed !== task.completed) {
-      // Create activity for task completion
+    // If the task was marked as completed, create an activity
+    if (wasCompleted && updatedTask) {
       await this.createActivity({
         type: "task_completed",
-        description: `Task completed: ${task.title}`,
+        description: `Task completed: ${updatedTask.title}`,
         timestamp: new Date(),
-        entityId: task.id,
+        entityId: updatedTask.id,
         entityType: "task",
-        userId: task.userId,
+        userId: updatedTask.userId,
       });
     }
     
@@ -362,24 +333,48 @@ export class MemStorage implements IStorage {
   }
 
   async deleteTask(id: number): Promise<boolean> {
-    return this.tasks.delete(id);
+    const result = await db.delete(tasks).where(eq(tasks.id, id)).returning();
+    return result.length > 0;
   }
 
   // Activity methods
   async getActivities(userId: number, limit?: number): Promise<Activity[]> {
-    const activities = Array.from(this.activities.values())
-      .filter(activity => activity.userId === userId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    let query = db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.timestamp));
     
-    return limit ? activities.slice(0, limit) : activities;
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const id = this.currentActivityId++;
-    const activity: Activity = { ...insertActivity, id };
-    this.activities.set(id, activity);
+    const [activity] = await db.insert(activities).values(insertActivity).returning();
     return activity;
   }
 }
 
-export const storage = new MemStorage();
+// Create a demo user if it doesn't exist
+async function initializeDemoData() {
+  const existingUser = await db.select().from(users).where(eq(users.username, "demo"));
+  
+  if (existingUser.length === 0) {
+    const demoUser: InsertUser = {
+      username: "demo",
+      password: "demo123",
+      fullName: "Sarah Johnson",
+      email: "sarah@example.com",
+      planType: "Premium",
+    };
+    await db.insert(users).values(demoUser);
+  }
+}
+
+// Initialize the database with demo data
+initializeDemoData().catch(console.error);
+
+export const storage = new DatabaseStorage();
