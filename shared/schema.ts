@@ -229,6 +229,16 @@ export const insertActivitySchema = createInsertSchema(activities).pick({
   userId: true,
 });
 
+// Add the user relations after all tables are defined
+export const usersRelations = relations(users, ({ many }) => ({
+  clients: many(clients),
+  projects: many(projects),
+  businessPlans: many(businessPlans),
+  expenses: many(expenses),
+  tasks: many(tasks),
+  activities: many(activities),
+}));
+
 // Export all types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
