@@ -86,16 +86,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               onClick={() => {
                 if (window.innerWidth < 640) setIsOpen(false);
               }}
+              className={cn(
+                "flex items-center px-4 py-3 text-neutral-600 hover:bg-primary-50 hover:text-primary-600 rounded-md transition-colors duration-200 ease-in-out",
+                currentTab === item.id && "bg-primary-50 text-primary-600 font-medium"
+              )}
             >
-              <a
-                className={cn(
-                  "flex items-center px-4 py-3 text-neutral-600 hover:bg-primary-50 hover:text-primary-600 rounded-md transition-colors duration-200 ease-in-out",
-                  currentTab === item.id && "bg-primary-50 text-primary-600 font-medium"
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </a>
+              {item.icon}
+              {item.label}
             </Link>
           ))}
         </nav>
