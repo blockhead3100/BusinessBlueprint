@@ -85,15 +85,15 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
   useEffect(() => {
     if (existingPlan) {
       setPlanData({
-        name: existingPlan.name,
-        template: existingPlan.template,
+        name: existingPlan.name || "",
+        template: existingPlan.template || "standard",
         clientId: existingPlan.clientId?.toString() || "",
-        content: existingPlan.content,
-        status: existingPlan.status,
+        content: existingPlan.content || "{}",
+        status: existingPlan.status || "draft",
       });
       
       try {
-        const parsedContent = JSON.parse(existingPlan.content);
+        const parsedContent = JSON.parse(existingPlan.content || "{}");
         setContentSections(parsedContent);
       } catch (e) {
         setContentSections({});
