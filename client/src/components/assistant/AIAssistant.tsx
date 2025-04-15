@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, X, ChevronUp, Send, Bot } from 'lucide-react';
+import { MessageSquare, X, ChevronUp, Send } from 'lucide-react';
+import { RobotEmoji } from "@/components/ui/robot-emoji";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
