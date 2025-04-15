@@ -471,8 +471,24 @@ async function initializeDemoData() {
       })
     );
     
-    // Create expenses
-    const expensesData: InsertExpense[] = [
+    // Create expenses (with option for new accounts to have zero revenue)
+    const newAccount = false; // Set to true for new accounts
+    
+    const expensesData: InsertExpense[] = newAccount ? 
+    [
+      // For new accounts, only show expenses, no income
+      {
+        description: "Initial setup costs",
+        amount: 500,
+        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        category: "Setup",
+        isIncome: false,
+        clientId: client1.id,
+        userId
+      }
+    ] : 
+    [
+      // For demo accounts, show typical expenses and income
       {
         description: "Website development",
         amount: 2500,
@@ -549,8 +565,27 @@ async function initializeDemoData() {
       })
     );
     
-    // Create activities
-    const activitiesData: InsertActivity[] = [
+    // Create activities (adjust based on new/existing account)
+    const activitiesData: InsertActivity[] = newAccount ? 
+    [
+      // For new accounts, show only a welcome activity and expense
+      {
+        type: "client_created",
+        description: "New client added: TechInnovate Solutions",
+        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        entityId: client1.id,
+        entityType: "client",
+        userId
+      },
+      {
+        type: "expense_created",
+        description: "Initial setup costs: $500.00",
+        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        userId
+      }
+    ] : 
+    [
+      // For demo accounts, show full history
       {
         type: "client_created",
         description: "New client added: TechInnovate Solutions",

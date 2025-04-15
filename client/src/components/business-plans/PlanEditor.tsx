@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, FileText, Download } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { BusinessPlan, Client } from "@shared/schema";
@@ -192,6 +192,46 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
   const handleSave = () => {
     savePlanMutation.mutate();
   };
+  
+  const handleExport = () => {
+    // Create exportable content
+    const planName = planData.name || "Business Plan";
+    
+    // Generate text content
+    let content = `# ${planName}\n\n`;
+    content += `Template: ${planData.template.startsWith("custom:") ? 
+      planData.template.split(":")[1] || "Custom Template" : 
+      planData.template}\n\n`;
+    
+    // Add each section
+    currentTemplateSections.forEach(section => {
+      content += `## ${section}\n\n`;
+      content += `${contentSections[section] || ""}\n\n`;
+    });
+    
+    // Create a blob and download link
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${planName.replace(/\s+/g, '_')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Successful",
+      description: `${planName} has been exported as Markdown`,
+    });
+  };
+  
+  const handleDownloadZip = () => {
+    toast({
+      title: "Coming Soon",
+      description: "Full ZIP download coming in the next update",
+    });
+  };
 
   // Get sections for the current template
   let currentTemplateSections: string[] = [];
@@ -227,10 +267,20 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
             {planId ? "Edit Business Plan" : "Create New Business Plan"}
           </h1>
         </div>
-        <Button onClick={handleSave} disabled={savePlanMutation.isPending}>
-          <Save className="h-4 w-4 mr-2" />
-          {savePlanMutation.isPending ? "Saving..." : "Save Plan"}
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={handleExport}>
+            <FileText className="h-4 w-4 mr-2" />
+            Export to MD
+          </Button>
+          <Button variant="outline" onClick={handleDownloadZip}>
+            <Download className="h-4 w-4 mr-2" />
+            Download ZIP
+          </Button>
+          <Button onClick={handleSave} disabled={savePlanMutation.isPending}>
+            <Save className="h-4 w-4 mr-2" />
+            {savePlanMutation.isPending ? "Saving..." : "Save Plan"}
+          </Button>
+        </div>
       </div>
       
       {/* Plan Details Form */}
