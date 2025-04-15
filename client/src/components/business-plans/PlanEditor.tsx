@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ChevronLeft, Save } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { BusinessPlan, Client } from "@shared/schema";
 
 // Template sections for each template type
 const templateSections: Record<string, string[]> = {
@@ -70,33 +71,35 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
   const [contentSections, setContentSections] = useState<Record<string, string>>({});
 
   // Fetch clients for dropdown
-  const { data: clients } = useQuery<any[]>({
+  const { data: clients } = useQuery<Client[]>({
     queryKey: ['/api/clients'],
   });
 
   // If editing existing plan, fetch its data
-  const { data: existingPlan, isLoading: isLoadingPlan } = useQuery({
+  const { data: existingPlan, isLoading: isLoadingPlan } = useQuery<BusinessPlan>({
     queryKey: ['/api/business-plans', planId],
-    enabled: !!planId,
-    onSuccess: (data) => {
-      if (data) {
-        setPlanData({
-          name: data.name,
-          template: data.template,
-          clientId: data.clientId?.toString() || "",
-          content: data.content,
-          status: data.status,
-        });
-        
-        try {
-          const parsedContent = JSON.parse(data.content);
-          setContentSections(parsedContent);
-        } catch (e) {
-          setContentSections({});
-        }
+    enabled: !!planId
+  });
+  
+  // Process the data when it changes
+  useEffect(() => {
+    if (existingPlan) {
+      setPlanData({
+        name: existingPlan.name,
+        template: existingPlan.template,
+        clientId: existingPlan.clientId?.toString() || "",
+        content: existingPlan.content,
+        status: existingPlan.status,
+      });
+      
+      try {
+        const parsedContent = JSON.parse(existingPlan.content);
+        setContentSections(parsedContent);
+      } catch (e) {
+        setContentSections({});
       }
     }
-  });
+  }, [existingPlan]);
 
   // Set up sections based on template
   useEffect(() => {
