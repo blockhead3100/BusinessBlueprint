@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { DollarSign, Users, FileText } from "lucide-react";
 import { QuickStat } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocation } from "wouter";
 
 export default function QuickStats() {
+  const [, setLocation] = useLocation();
+  
   const { data: expenses, isLoading: expensesLoading } = useQuery<any[]>({
     queryKey: ['/api/expenses'],
   });
@@ -41,34 +44,41 @@ export default function QuickStats() {
     return { active, draft };
   };
 
-  const stats: QuickStat[] = [
+  const stats: (QuickStat & { link: string })[] = [
     {
       title: "Monthly Revenue",
       value: isLoading ? "-" : `$${calculateMonthlyRevenue().toLocaleString()}`,
       change: "8.2% from last month",
       changeType: "increase",
-      icon: <DollarSign className="h-6 w-6 text-primary-600" />
+      icon: <DollarSign className="h-6 w-6 text-primary-600" />,
+      link: "/expenses"
     },
     {
       title: "Active Clients",
       value: isLoading ? "-" : `${clients?.length || 0}`,
       change: "2 new this month",
       changeType: "increase",
-      icon: <Users className="h-6 w-6 text-primary-600" />
+      icon: <Users className="h-6 w-6 text-primary-600" />,
+      link: "/clients"
     },
     {
       title: "Business Plans",
       value: isLoading ? "-" : `${(businessPlans?.length || 0)}`,
       change: isLoading ? "-" : `${countActivePlans().active} active, ${countActivePlans().draft} drafts`,
       changeType: "neutral",
-      icon: <FileText className="h-6 w-6 text-primary-600" />
+      icon: <FileText className="h-6 w-6 text-primary-600" />,
+      link: "/business-plans"
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index}>
+        <Card 
+          key={index} 
+          className="cursor-pointer hover:border-primary-400 transition-colors"
+          onClick={() => setLocation(stat.link)}
+        >
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="bg-primary-50 p-3 rounded-md">
