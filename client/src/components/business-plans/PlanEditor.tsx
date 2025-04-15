@@ -103,8 +103,28 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
 
   // Set up sections based on template
   useEffect(() => {
-    const template = planData.template || "standard";
-    const sections = templateSections[template];
+    let template = planData.template || "standard";
+    let sections: string[] = [];
+    
+    // Handle custom template format (custom:name:section1\nsection2\nsection3)
+    if (template.startsWith("custom:")) {
+      const parts = template.split(":");
+      if (parts.length >= 3) {
+        const customSections = parts[2].split("\n").filter(section => section.trim() !== "");
+        if (customSections.length > 0) {
+          sections = customSections;
+        } else {
+          // Fallback to standard if no sections defined
+          sections = templateSections["standard"];
+        }
+      } else {
+        sections = templateSections["standard"];
+      }
+    } else {
+      // Use predefined template sections
+      sections = templateSections[template] || templateSections["standard"];
+    }
+    
     if (sections && sections.length > 0) {
       // Initialize sections if they don't exist
       const initialContent: Record<string, string> = {};
@@ -173,7 +193,27 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     savePlanMutation.mutate();
   };
 
-  const currentTemplateSections = templateSections[planData.template || "standard"];
+  // Get sections for the current template
+  let currentTemplateSections: string[] = [];
+  const template = planData.template || "standard";
+  
+  if (template.startsWith("custom:")) {
+    // Extract sections from custom template
+    const parts = template.split(":");
+    if (parts.length >= 3) {
+      const customSections = parts[2].split("\n").filter(section => section.trim() !== "");
+      if (customSections.length > 0) {
+        currentTemplateSections = customSections;
+      } else {
+        currentTemplateSections = templateSections["standard"];
+      }
+    } else {
+      currentTemplateSections = templateSections["standard"];
+    }
+  } else {
+    // Use predefined template sections
+    currentTemplateSections = templateSections[template] || templateSections["standard"];
+  }
 
   return (
     <div className="space-y-6">
