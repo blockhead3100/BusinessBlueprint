@@ -15,15 +15,15 @@ export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
       icon: <FileText className="h-16 w-16 text-neutral-400" />
     },
     {
-      id: "startup",
-      name: "Startup Plan",
-      description: "Focused on innovation, growth projections and market fit",
+      id: "tech-startup",
+      name: "Tech Startup Plan",
+      description: "Focused on technology innovation, growth projections and market fit",
       icon: <Briefcase className="h-16 w-16 text-neutral-400" />
     },
     {
-      id: "financial",
-      name: "Financial Focus",
-      description: "Emphasizes financial projections and investment needs",
+      id: "food-business",
+      name: "Food Business Plan",
+      description: "Specialized for food industry businesses including restaurants and producers",
       icon: <DollarSign className="h-16 w-16 text-neutral-400" />
     }
   ];
@@ -39,14 +39,27 @@ export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
           {templates.map((template) => (
             <div 
               key={template.id}
-              className="border border-neutral-200 rounded-lg p-4 cursor-pointer hover:border-primary-500 transition duration-150 ease-in-out"
+              className="border border-neutral-200 rounded-lg p-4 cursor-pointer hover:border-primary-500 hover:shadow-sm transition duration-150 ease-in-out"
               onClick={() => onSelect(template.id)}
             >
-              <div className="h-40 rounded-md bg-neutral-50 flex items-center justify-center mb-4">
+              <div className={`h-40 rounded-md ${
+                template.id === "tech-startup" ? "bg-blue-50" : 
+                template.id === "food-business" ? "bg-green-50" : 
+                "bg-neutral-50"
+              } flex items-center justify-center mb-4`}>
                 {template.icon}
               </div>
               <h3 className="text-md font-medium text-neutral-800">{template.name}</h3>
               <p className="text-sm text-neutral-500 mt-1">{template.description}</p>
+              <button 
+                className="w-full mt-3 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  onSelect(template.id);
+                }}
+              >
+                Use This Template
+              </button>
             </div>
           ))}
         </div>

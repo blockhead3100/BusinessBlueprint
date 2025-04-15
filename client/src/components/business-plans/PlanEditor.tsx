@@ -24,11 +24,12 @@ const templateSections: Record<string, string[]> = {
     "Financial Projections",
     "Appendix"
   ],
-  startup: [
+  "tech-startup": [
     "Problem",
     "Solution",
     "Market Opportunity",
     "Competition",
+    "Technology Stack",
     "Business Model",
     "Go-to-Market Strategy",
     "Team",
@@ -36,17 +37,17 @@ const templateSections: Record<string, string[]> = {
     "Funding Requirements",
     "Financial Projections"
   ],
-  financial: [
+  "food-business": [
     "Executive Summary",
-    "Financial Goals",
-    "Current Financial Position",
-    "Revenue Streams",
-    "Cost Structure",
-    "Funding Requirements",
-    "Cash Flow Projections",
-    "Break-even Analysis",
-    "Return on Investment",
-    "Risk Analysis"
+    "Business Concept",
+    "Menu & Products",
+    "Target Market",
+    "Competitor Analysis",
+    "Operations Plan",
+    "Supply Chain",
+    "Marketing Strategy",
+    "Financial Projections",
+    "Sustainability Plan"
   ]
 };
 
@@ -239,8 +240,8 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="standard">Standard Business Plan</SelectItem>
-                  <SelectItem value="startup">Startup Plan</SelectItem>
-                  <SelectItem value="financial">Financial Focus</SelectItem>
+                  <SelectItem value="tech-startup">Tech Startup Plan</SelectItem>
+                  <SelectItem value="food-business">Food Business Plan</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -88,7 +88,11 @@ export default function PlansList({ onSelect }: PlansListProps) {
                 ))
               ) : plans && plans.length > 0 ? (
                 plans.map((plan) => (
-                  <tr key={plan.id}>
+                  <tr 
+                    key={plan.id} 
+                    className="cursor-pointer hover:bg-neutral-50"
+                    onClick={() => onSelect(plan.id)}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-neutral-900">{plan.name}</div>
                       <div className="text-xs text-neutral-500">{plan.template} Template</div>
@@ -104,17 +108,26 @@ export default function PlansList({ onSelect }: PlansListProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button 
-                        onClick={() => onSelect(plan.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelect(plan.id);
+                        }}
                         className="text-primary-600 hover:text-primary-900"
                       >
                         Edit
                       </button>
                       <span className="mx-1 text-neutral-300">|</span>
-                      <button className="text-neutral-600 hover:text-neutral-900">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-neutral-600 hover:text-neutral-900"
+                      >
                         Preview
                       </button>
                       <span className="mx-1 text-neutral-300">|</span>
-                      <button className="text-neutral-600 hover:text-neutral-900">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-neutral-600 hover:text-neutral-900"
+                      >
                         Export
                       </button>
                     </td>
