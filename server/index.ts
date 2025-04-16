@@ -57,11 +57,12 @@ app.use((req, res, next) => {
   }
 
   // Modify the port to use a command-line argument or default to 5000
-  const port = (process.argv[2] || 5000).toString();
+  const port = process.env.PORT || "5000";
+  const host = process.env.HOST || "0.0.0.0";
 
   server.listen({
     port: parseInt(port, 10),
-    host: "0.0.0.0",
+    host: host,
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
