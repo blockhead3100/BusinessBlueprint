@@ -1,0 +1,18 @@
+{
+    "CodeGPT.apiKey": "CodeGPT Plus",
+    "cSpell.words": [
+        "postgresdb",
+        "PGDATABASE",
+        "PGHOST",
+        "PGPORT",
+        "PGUSER",
+        "PGPASSWORD",
+        "jridgewell",
+        "neondatabase",
+        "cmdk",
+        "embla",
+        "memorystore",
+        "vaul",
+        "wouter"
+    ]
+}

@@ -229,6 +229,20 @@ export const insertActivitySchema = createInsertSchema(activities).pick({
   userId: true,
 });
 
+// Resources table
+export const resources = pgTable("resources", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+});
+
+export const insertResourceSchema = createInsertSchema(resources).pick({
+  name: true,
+  description: true,
+});
+
 // Add the user relations after all tables are defined
 export const usersRelations = relations(users, ({ many }) => ({
   clients: many(clients),
@@ -260,3 +274,6 @@ export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+export type Resource = typeof resources.$inferSelect;
+export type InsertResource = z.infer<typeof insertResourceSchema>;

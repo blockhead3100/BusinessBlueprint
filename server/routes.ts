@@ -6,10 +6,15 @@ import {
   insertBusinessPlanSchema, 
   insertExpenseSchema, 
   insertTaskSchema,
-  insertProjectSchema
+  insertProjectSchema,
+  resources
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { Router } from "express";
+import { db } from "./db";
+
+const router = Router();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // All routes will be prefixed with /api
@@ -274,7 +279,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(activities);
   });
 
+  // Helper function to validate and parse request data
+  function validateAndParseResourceData(req: Request) {
+    const { name, description } = req.body;
+
+    if (!name || !description) {
+      throw new Error("Name and description are required.");
+    }
+
+    return { name, description };
+  }
+
+  // Refactored POST endpoint
+  router.post("/api/resource", async (req, res) => {
+    try {
+      const data = validateAndParseResourceData(req);
+      const result = await db.insert(resources).values(data);
+
+      res.status(201).json({ message: "Resource created successfully.", data: result });
+    } catch (error) {
+      console.error(error);
+      const err = error as Error; // Explicitly cast error to Error
+      res.status(400).json({ message: err.message || "Internal server error." });
+    }
+  });
+
   // Create the server
   const httpServer = createServer(app);
   return httpServer;
 }
+
+// Ensure export default is at the top level
+export default router;
