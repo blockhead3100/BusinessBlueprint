@@ -32,6 +32,7 @@ export default function BusinessPlans() {
   };
 
   const handlePlanSelect = (planId: number) => {
+    console.log('Plan selected:', planId); // Debugging log
     setSelectedPlanId(planId);
     setIsCreatingNew(false);
     // Load the selected plan's data (mocked for now)

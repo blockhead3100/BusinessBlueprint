@@ -9,7 +9,7 @@ interface PlansListProps {
   onSelect: (planId: number) => void;
 }
 
-export default function PlansList({ onSelect }: PlansListProps) {
+const PlansList: React.FC<{ onSelect: (planId: number) => void }> = ({ onSelect }) => {
   const { data: plans, isLoading } = useQuery<BusinessPlan[]>({
     queryKey: ['/api/business-plans'],
   });
@@ -146,4 +146,6 @@ export default function PlansList({ onSelect }: PlansListProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PlansList;
