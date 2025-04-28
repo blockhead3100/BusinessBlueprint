@@ -41,6 +41,38 @@ Business Blueprint is a web application designed to help users create and manage
 - **Frontend**: The frontend is built with React and Vite. The entry point is `client/index.html`.
 - **Backend**: The backend is built with Node.js and TypeScript. The entry point is `server/index.ts`.
 
+## Database Management
+
+This project uses **Prisma** as the ORM for database management. Prisma provides a type-safe and modern way to interact with the database.
+
+### Setup
+
+1. Install Prisma CLI:
+   ```bash
+   npm install prisma --save-dev
+   ```
+
+2. Initialize Prisma:
+   ```bash
+   npx prisma init
+   ```
+
+3. Define your database schema in `prisma/schema.prisma`.
+
+4. Run migrations to apply schema changes:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. Generate Prisma Client:
+   ```bash
+   npx prisma generate
+   ```
+
+### Notes
+- Prisma replaces Drizzlekit due to security vulnerabilities.
+- Ensure your database connection string is correctly set in the `.env` file.
+
 ## Scripts
 
 - `npm run dev`: Start the development server.

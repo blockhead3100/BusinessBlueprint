@@ -61,13 +61,21 @@ const BusinessPlans = () => {
   );
 
   const renderCurrentView = () => {
+    const mappedPlans = (plans || []).map(plan => ({
+      ...plan,
+      clientName: plan.clientId ? getClientNameById(plan.clientId) : 'Unknown Client',
+      template: plan.template || 'Default Template', // Ensure template is a string
+      status: (['active', 'draft', 'archived'] as const).includes(plan.status as 'active' | 'draft' | 'archived')
+        ? (plan.status as 'active' | 'draft' | 'archived')
+        : 'draft', // Default to 'draft' for null or invalid statuses
+      lastUpdated: plan.lastUpdated || new Date(), // Default to current date
+    }));
+
     if (isLoadingList && viewMode === 'list') {
-        // Pass loading state to PlansList OR show a general loader here
-        // PlansList already has skeleton loading, so maybe just render it
-         return <PlansList onSelect={handleSelectPlan} />; // Pass explicit loading prop if needed
+         return <PlansList plans={[]} onSelect={handleSelectPlan} isLoading={true} />;
     }
      if (listError && viewMode === 'list') {
-        return <div>Error loading plans: {listError.message}</div>; // Show error above list
+        return <div>Error loading plans: {listError.message}</div>;
     }
 
     switch (viewMode) {
@@ -77,9 +85,24 @@ const BusinessPlans = () => {
         return <PlanTemplates onSelect={handleTemplateSelect} />;
       case 'list':
       default:
-        // Pass the actual plans data to PlansList
-        return <PlansList onSelect={handleSelectPlan} />; // Pass loading state
+        return <PlansList
+                 plans={mappedPlans} // Pass the mapped plans with clientName
+                 onSelect={handleSelectPlan}
+                 isLoading={isLoadingList}
+               />;
     }
+  };
+
+  // Helper function to get client name by ID
+  const getClientNameById = (clientId: number): string => {
+    // Mocked clients array for demonstration purposes
+    const clients: { id: number; name: string }[] = [
+      { id: 1, name: 'Client A' },
+      { id: 2, name: 'Client B' },
+    ];
+
+    const client = clients.find((client) => client.id === clientId);
+    return client ? client.name : 'Unknown Client';
   };
 
   return (
