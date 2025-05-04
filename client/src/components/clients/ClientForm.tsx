@@ -258,8 +258,12 @@ export default function ClientForm({ onCancel, clientId }: ClientFormProps) {
               <Button variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={clientMutation.isPending}>
-                {clientMutation.isPending ? 'Saving...' : clientId ? 'Update Client' : 'Add Client'}
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
+                style={{ display: 'block' }}
+              >
+                Save
               </Button>
             </CardFooter>
           </form>

@@ -61,7 +61,13 @@ const SettingsPage = () => {
                 />
                 {formErrors.email && <span>{formErrors.email}</span>}
             </div>
-            <button type="submit">Save</button>
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
+              style={{ display: 'block' }}
+            >
+              Save
+            </button>
         </form>
     );
 };

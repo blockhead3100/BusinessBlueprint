@@ -1,4 +1,4 @@
-import { formatDate } from '../src/utils/formatDate';
+import { formatDate } from '../client/src/lib/utils/formatDate';
 
 test('formats date correctly for valid input', () => {
     expect(formatDate('2023-01-01')).toBe('January 1, 2023');

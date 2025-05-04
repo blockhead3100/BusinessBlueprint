@@ -67,6 +67,7 @@ export default function UpcomingTasks() {
   };
 
   const onSubmit = (data: NewTaskFormValues) => {
+    console.log("Form submitted with data:", data); // Debugging log
     createTaskMutation.mutate(data);
   };
 
@@ -126,14 +127,13 @@ export default function UpcomingTasks() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-lg shadow-lg p-6 bg-white max-w-md mx-auto flex flex-col space-y-4">
           <DialogHeader>
-            <DialogTitle>Add New Task</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg font-bold text-neutral-800">Add New Task</DialogTitle>
+            <DialogDescription className="text-sm text-neutral-500">
               Create a new task to keep track of your work.
             </DialogDescription>
           </DialogHeader>
-          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -141,33 +141,31 @@ export default function UpcomingTasks() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Task Title</FormLabel>
+                    <FormLabel className="text-sm font-medium text-neutral-700">Task Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter task title" {...field} />
+                      <Input placeholder="Enter task title" {...field} className="border border-neutral-300 rounded-md p-2 w-full" />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              
               <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Due Date</FormLabel>
+                    <FormLabel className="text-sm font-medium text-neutral-700">Due Date</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} className="border border-neutral-300 rounded-md p-2 w-full" />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              
               <Button 
                 type="submit" 
-                className="w-full"
-                disabled={createTaskMutation.isPending}
+                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
+                style={{ display: 'block' }}
               >
-                {createTaskMutation.isPending ? "Adding..." : "Add Task"}
+                Save
               </Button>
             </form>
           </Form>

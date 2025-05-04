@@ -246,7 +246,13 @@ export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCustomForm(false)}>Cancel</Button>
-            <Button onClick={() => handleCreateBusinessPlan("custom")}>Create Template</Button>
+            <Button 
+                type="submit" 
+                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
+                style={{ display: 'block' }}
+              >
+                Save
+              </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

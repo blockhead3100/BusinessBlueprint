@@ -6,20 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import genkit from 'genkit';
+import googleAI, { gemini20Flash } from '@genkit-ai/googleai';
+import openAI, { gpt4o } from 'genkitx-openai';
+import anthropic, { claude35Sonnet } from 'genkitx-anthropic';
 
-// Mock response generation - this would be replaced with actual AI integration
-const getAssistantResponse = async (message: string): Promise<string> => {
-  // This is a placeholder - eventually you'd connect to OpenAI or another service
-  if (message.toLowerCase().includes('template')) {
-    return "I can help you create a template for your business plan. Just specify what kind of business you're planning for, and what sections you'd like to include.";
-  } else if (message.toLowerCase().includes('loan') || message.toLowerCase().includes('bank')) {
-    return "When preparing a business plan for a loan application, be sure to focus on your financial projections, market analysis, and competitive advantage. Lenders look for clear repayment strategies and realistic revenue forecasts.";
-  } else if (message.toLowerCase().includes('financial') || message.toLowerCase().includes('projection')) {
-    return "Financial projections should include cash flow statements, balance sheets, and income statements for at least 3-5 years. Be conservative in your revenue estimates and comprehensive about expenses.";
-  } else {
-    return "I'm here to help with any aspect of your business plan. You can ask me about templates, financial projections, market analysis, or any other section you're working on.";
+const ai = genkit({
+  plugins: [
+    googleAI(),
+    openAI(),
+    anthropic(),
+  ],
+  model: gemini20Flash, // Set default model
+});
+
+async function getAssistantResponse(message: string): Promise<string> {
+  try {
+    const response = await ai.generate({
+      model: claude35Sonnet, // Example model
+      prompt: [
+        {
+          text: message,
+        },
+      ],
+    });
+    return response;
+  } catch (error) {
+    console.error('Error generating response:', error);
+    throw new Error('Failed to generate response');
   }
-};
+}
 
 interface Message {
   id: number;
