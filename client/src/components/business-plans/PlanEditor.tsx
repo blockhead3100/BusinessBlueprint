@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -183,7 +183,7 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
         description: `Business plan ${planId ? "updated" : "created"} successfully`,
       });
     },
-    onError: (error) => {
+    onError: (error: { toString: () => any; }) => {
       toast({
         title: "Error",
         description: `Failed to ${planId ? "update" : "create"} business plan: ${error.toString()}`,
@@ -280,6 +280,9 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     currentTemplateSections = templateSections[template] || templateSections["standard"];
   }
 
+  console.log("Debug: contentSections", contentSections);
+  console.log("Debug: currentTemplateSections", currentTemplateSections);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -336,8 +339,8 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">No client</SelectItem>
-                  {clients?.map(client => (
-                    <SelectItem key={client.id} value={client.id.toString()}>
+                  {clients?.map((client) => (
+                    <SelectItem key={client.id ?? "default"} value={client.id?.toString() ?? ""}>
                       {client.name}
                     </SelectItem>
                   ))}
