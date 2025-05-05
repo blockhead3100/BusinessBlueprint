@@ -32,8 +32,7 @@ import {
 
 export default function PitchDeck() {
   const [activeSlide, setActiveSlide] = useState('company');
-
-  const slideOptions = [
+  const [slideOptions, setSlideOptions] = useState([
     { id: 'company', label: 'Company Overview', icon: <FileText className="mr-2 h-4 w-4" /> },
     { id: 'problem', label: 'Problem', icon: <Target className="mr-2 h-4 w-4" /> },
     { id: 'solution', label: 'Solution', icon: <Award className="mr-2 h-4 w-4" /> },
@@ -42,7 +41,17 @@ export default function PitchDeck() {
     { id: 'business-model', label: 'Business Model', icon: <Layers className="mr-2 h-4 w-4" /> },
     { id: 'traction', label: 'Traction', icon: <TrendingUp className="mr-2 h-4 w-4" /> },
     { id: 'financials', label: 'Financials', icon: <DollarSign className="mr-2 h-4 w-4" /> },
-  ];
+  ]);
+
+  const handleSaveSlide = (slideId, formData) => {
+    console.log(`Saving slide ${slideId} with data:`, formData);
+    // Add logic to persist the form data, e.g., API call or state update
+  };
+
+  const handleTemplateSelection = (templateId) => {
+    console.log(`Template ${templateId} selected.`);
+    setActiveSlide(templateId);
+  };
 
   return (
     <div className="space-y-6">
@@ -83,7 +92,7 @@ export default function PitchDeck() {
                 <p className="text-sm text-neutral-500">
                   Includes slides for problem statement, solution, market size, competition, business model, team, and financials.
                 </p>
-                <Button className="w-full mt-4">Use Template</Button>
+                <Button className="w-full mt-4" onClick={() => handleTemplateSelection('company')}>Use Template</Button>
               </CardContent>
             </Card>
 
@@ -101,7 +110,7 @@ export default function PitchDeck() {
                 <p className="text-sm text-neutral-500">
                   Focuses on growth metrics, financial projections, market validation, and return on investment potential.
                 </p>
-                <Button className="w-full mt-4">Use Template</Button>
+                <Button className="w-full mt-4" onClick={() => handleTemplateSelection('financials')}>Use Template</Button>
               </CardContent>
             </Card>
 
@@ -119,7 +128,7 @@ export default function PitchDeck() {
                 <p className="text-sm text-neutral-500">
                   Highlights product features, benefits, target audience, pricing strategy, and go-to-market plan.
                 </p>
-                <Button className="w-full mt-4">Use Template</Button>
+                <Button className="w-full mt-4" onClick={() => handleTemplateSelection('solution')}>Use Template</Button>
               </CardContent>
             </Card>
           </div>
@@ -150,6 +159,11 @@ export default function PitchDeck() {
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start text-primary-600"
+                    onClick={() => {
+                      const newSlide = { id: `new-slide-${Date.now()}`, label: 'New Slide', icon: <FileText className="mr-2 h-4 w-4" /> };
+                      setSlideOptions((prev) => [...prev, newSlide]);
+                      setActiveSlide(newSlide.id);
+                    }}
                   >
                     + Add New Slide
                   </Button>
@@ -273,8 +287,48 @@ export default function PitchDeck() {
                   </div>
                 )}
 
+                {activeSlide === 'business-model' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Business Model</Label>
+                      <Textarea 
+                        placeholder="Describe your business model..." 
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <div>
+                      <Label>Revenue Streams</Label>
+                      <Textarea 
+                        placeholder="Describe your revenue streams..." 
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <div>
+                      <Label>Upload Supporting Documents</Label>
+                      <div className="mt-1 flex items-center justify-center border border-dashed border-neutral-300 rounded-md p-6 w-full text-center cursor-pointer hover:bg-neutral-50">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              console.log(`File uploaded: ${file.name}`);
+                              // Add logic to handle the uploaded file
+                            }
+                          }}
+                        />
+                        <div>
+                          <p className="text-neutral-500 text-sm">Click to upload or drag and drop</p>
+                          <p className="text-neutral-400 text-xs mt-1">SVG, PNG, JPG (max. 2MB)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Displays when any other slide is selected */}
-                {!['company', 'problem', 'market'].includes(activeSlide) && (
+                {!['company', 'problem', 'market', 'business-model'].includes(activeSlide) && (
                   <div className="space-y-4">
                     <div>
                       <Label>Slide Title</Label>
@@ -305,7 +359,7 @@ export default function PitchDeck() {
 
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button variant="outline">Reset Slide</Button>
-                  <Button>Save Slide</Button>
+                  <Button onClick={() => handleSaveSlide(activeSlide, {})}>Save Slide</Button>
                 </div>
               </CardContent>
             </Card>
