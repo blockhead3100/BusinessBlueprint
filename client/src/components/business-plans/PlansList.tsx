@@ -1,19 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { BusinessPlan } from "@/lib/types";
 import { formatDateRelative } from "@/lib/utils/dateUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 interface PlansListProps {
+  plans: BusinessPlan[]; // Or the specific type you use
   onSelect: (planId: number) => void;
+  isLoading: boolean;
 }
 
-const PlansList: React.FC<{ onSelect: (planId: number) => void }> = ({ onSelect }) => {
-  const { data: plans, isLoading } = useQuery<BusinessPlan[]>({
-    queryKey: ['/api/business-plans'],
-  });
-
+const PlansList: React.FC<PlansListProps> = ({ plans, onSelect, isLoading }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':

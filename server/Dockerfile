@@ -1,20 +1,17 @@
-# Use an official Node.js image
-FROM node:18
+# Dockerfile for the server
+FROM gcr.io/distroless/nodejs18
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
-
 # Install dependencies
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy the rest of the server code
+# Copy source code
 COPY . .
 
-# Expose the server port
-EXPOSE 5000
+# Expose the port the server runs on
+EXPOSE 3000
 
 # Start the server
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]

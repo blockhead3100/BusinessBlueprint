@@ -1,11 +1,9 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
-import dotenv from "dotenv";
+import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
+if (!process.env.DATABASE_URL) {
 neonConfig.webSocketConstructor = ws;
 
 // Attempt to connect to the primary database, fallback to secondary if it fails
@@ -18,6 +16,7 @@ if (!primaryDatabaseUrl && !fallbackDatabaseUrl) {
   );
 }
 
+export const prisma = new PrismaClient();
 let pool;
 try {
   if (primaryDatabaseUrl) {
