@@ -1,205 +1,212 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlanTemplate } from "@/lib/types";
-import { FileText, Briefcase, DollarSign, PenTool } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Label,
+  Input,
+  Textarea,
+} from "@radix-ui/themes"; // Assuming Radix UI
 
-interface PlanTemplatesProps {
-  onSelect: (templateId: string) => void;
-}
-
-interface BusinessInfo {
-  id: string;
-  name: string;
-  ownerName: string;
-  industry: string;
-  location: string;
-}
-
-interface FinancialData {
-  startingCapital: number;
-  projectedRevenue: number;
-  expenses: { [category: string]: number };
-  fundingRequest: number;
-  collateral?: string;
-}
-
-interface MarketAnalysis {
-  targetMarket: string;
-  competitorAnalysis: string;
-  marketingStrategy: string;
-}
-
-interface OperationalPlan {
-  companyStructure: string;
-  productsOrServices: string;
-  productionProcess?: string;
-  managementTeam: { name: string; role: string; experience: string }[];
-}
-
-interface BusinessPlan {
-  executiveSummary: string;
-  companyDescription: string;
-  productsAndServices: string;
-  marketAnalysis: MarketAnalysis;
-  managementAndOrganization: string;
-  financialProjections: FinancialData;
-  fundingRequest: string;
-  operationalPlan: OperationalPlan;
-  attachments?: string[];
-  sections: string[];
-}
-
-interface LoanApplication {
-  businessInfo: BusinessInfo;
-  businessPlan: BusinessPlan;
-  status: "Draft" | "Submitted" | "Approved" | "Rejected";
-  submissionDate?: Date;
-  notes?: string;
-}
-
-interface AppData {
-  businesses: { [businessId: string]: LoanApplication };
-}
-
-export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
-  const [appData, setAppData] = useState<AppData>({ businesses: {} });
+const PlanTemplates = () => {
+  const navigate = useNavigate();
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customTemplate, setCustomTemplate] = useState({
     name: "",
     description: "",
-    sections: "",
+    sections: [],
   });
+  const [savedTemplates, setSavedTemplates] = useState([]);
+  const [saveConfirmation, setSaveConfirmation] = useState("");
+  const [expandedTemplateId, setExpandedTemplateId] = useState(null);
 
-  const templates: PlanTemplate[] = [
-    {
-      id: "standard",
-      name: "Standard Business Plan",
-      description: "A comprehensive business plan suitable for most businesses",
-      icon: <FileText className="h-16 w-16 text-neutral-400" />
-    },
-    {
-      id: "tech-startup",
-      name: "Tech Startup Plan",
-      description: "Focused on technology innovation, growth projections and market fit",
-      icon: <Briefcase className="h-16 w-16 text-neutral-400" />
-    },
+  useEffect(() => {
+    const storedTemplates = localStorage.getItem("customTemplates");
+    if (storedTemplates) {
+      setSavedTemplates(JSON.parse(storedTemplates));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (saveConfirmation) {
+      const timer = setTimeout(() => {
+        setSaveConfirmation("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveConfirmation]);
+
+  const saveTemplatesToLocalStorage = (templatesToSave) => {
+    localStorage.setItem("customTemplates", JSON.stringify(templatesToSave));
+  };
+
+  const templates = [
     {
       id: "food-business",
       name: "Food Business Plan",
-      description: "Specialized for food industry businesses including restaurants and producers",
-      icon: <DollarSign className="h-16 w-16 text-neutral-400" />
+      path: "/business-plans/food",
+      description: "Focus on menu development, sourcing, and health regulations.",
     },
     {
-      id: "custom",
-      name: "Custom Template",
-      description: "Create your own custom template with sections tailored to your business needs",
-      icon: <PenTool className="h-16 w-16 text-neutral-400" />
-    }
+      id: "smm-agency",
+      name: "Social Media Management Agency Plan",
+      path: "/business-plans/smm",
+      description: "Highlight your strategies for managing social media accounts effectively.",
+    },
+    {
+      id: "consulting-agency",
+      name: "Business Consulting Agency Plan",
+      path: "/business-plans/consulting",
+      description: "Detail your consulting services, target industries, and client acquisition strategies.",
+    },
+    {
+      id: "custom-template", // Changed ID to avoid conflict with the 'custom' action
+      name: "Custom Business Plan",
+      path: "/business-plans/custom",
+      description: "Create a fully customizable business plan tailored to your needs.",
+    },
   ];
 
-  const handleCustomTemplateClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowCustomForm(true);
+  const handleCreateBusinessPlan = (templateId) => {
+    if (templateId === "custom-template") { // Updated check
+      setShowCustomForm(true);
+    } else {
+      const selectedTemplate = templates.find((template) => template.id === templateId);
+      if (selectedTemplate && selectedTemplate.path) {
+        navigate(selectedTemplate.path);
+      } else {
+        console.error("Template path not found for:", templateId);
+      }
+    }
   };
 
-  const handleCreateBusinessPlan = (templateId: string) => {
-    const businessId = crypto.randomUUID();
-    const newBusiness: LoanApplication = {
-      businessInfo: {
-        id: businessId,
-        name: "New Business",
-        ownerName: "Owner Name",
-        industry: "Industry",
-        location: "Location",
-      },
-      businessPlan: {
-        executiveSummary: "",
-        companyDescription: "",
-        productsAndServices: "",
-        marketAnalysis: {
-          targetMarket: "",
-          competitorAnalysis: "",
-          marketingStrategy: "",
-        },
-        managementAndOrganization: "",
-        financialProjections: {
-          startingCapital: 0,
-          projectedRevenue: 0,
-          expenses: {},
-          fundingRequest: 0,
-        },
-        fundingRequest: "",
-        operationalPlan: {
-          companyStructure: "",
-          productsOrServices: "",
-          managementTeam: [],
-        },
-        sections: templateId === "custom" ? customTemplate.sections.split("\n") : ["Executive Summary", "Market Analysis", "Financial Projections"],
-      },
-      status: "Draft",
+  const handleSaveCustomTemplate = () => {
+    const newTemplate = {
+      id: `custom-${Date.now()}`,
+      name: customTemplate.name,
+      description: customTemplate.description,
+      sections: customTemplate.sections,
+      isCustom: true,
     };
 
-    setAppData((prev) => ({
-      ...prev,
-      businesses: {
-        ...prev.businesses,
-        [businessId]: newBusiness,
-      },
-    }));
+    const updatedTemplates = [...savedTemplates, newTemplate];
+    setSavedTemplates(updatedTemplates);
+    saveTemplatesToLocalStorage(updatedTemplates);
+    setSaveConfirmation(`Custom template "${newTemplate.name}" saved!`);
+    setShowCustomForm(false);
+    setCustomTemplate({ name: "", description: "", sections: [] });
+  };
 
-    onSelect(businessId);
+  const toggleTemplateDetails = (templateId) => {
+    setExpandedTemplateId((prevId) => (prevId === templateId ? null : templateId));
+  };
+
+  const useTemplate = (templateId, isCustom = false, customTemplateData = null) => {
+    navigate(`/use-template/${templateId}`, { state: { isCustom, customTemplateData } });
   };
 
   return (
-    <>
-      <Card className="border border-neutral-100 shadow-sm">
-        <CardHeader className="px-6 py-4 border-b border-neutral-100">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-lg font-medium text-neutral-800">Choose a Template</CardTitle>
-              <CardDescription>Select a template below to get started quickly</CardDescription>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCustomForm(true)}
-              className="border-primary-500 text-primary-600 hover:bg-primary-50"
-            >
-              Create Template
-            </Button>
-          </div>
+    <div>
+      <h1>Choose a Business Plan Template</h1>
+      <ul>
+        {templates
+          .slice(0, 4)
+          .map((template) => (
+            <li key={template.name} className="mb-4">
+              <button
+                onClick={() => navigate(template.path)} // Keep existing navigation for the initial list
+                className="text-primary-600 hover:underline"
+              >
+                {template.name}
+              </button>
+              <p className="text-sm text-neutral-500">{template.description}</p>
+            </li>
+          ))}
+      </ul>
+      <Card>
+        <CardHeader>
+          <Button onClick={() => handleCreateBusinessPlan("custom-template")}>
+            Create Template
+          </Button>
         </CardHeader>
         <CardContent className="p-6">
+          {saveConfirmation && (
+            <div className="text-green-500 mb-4">{saveConfirmation}</div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {templates.map((template) => (
-              <div 
+              <div
                 key={template.id}
                 className="border border-neutral-200 rounded-lg p-4 cursor-pointer hover:border-primary-500 hover:shadow-sm transition duration-150 ease-in-out"
                 onClick={() => handleCreateBusinessPlan(template.id)}
               >
-                <div className={`h-40 rounded-md ${
-                  template.id === "tech-startup" ? "bg-blue-50" : 
-                  template.id === "food-business" ? "bg-green-50" : 
-                  template.id === "custom" ? "bg-purple-50" :
-                  "bg-neutral-50"
-                } flex items-center justify-center mb-4`}>
+                <div
+                  className={`h-40 rounded-md ${
+                    template.id === "tech-startup"
+                      ? "bg-blue-50"
+                      : template.id === "food-business"
+                      ? "bg-green-50"
+                      : template.id === "custom-template" // Updated check
+                      ? "bg-purple-50"
+                      : "bg-neutral-50"
+                  } flex items-center justify-center mb-4`}
+                >
                   {template.icon}
                 </div>
-                <h3 className="text-md font-medium text-neutral-800">{template.name}</h3>
-                <p className="text-sm text-neutral-500 mt-1">{template.description}</p>
-                <button 
+                <h3 className="text-md font-medium text-neutral-800">
+                  {template.name}
+                </h3>
+                <p className="text-sm text-neutral-500 mt-1">
+                  {template.description}
+                </p>
+                <button
                   className="w-full mt-3 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
                   onClick={(e) => {
-                    e.stopPropagation(); 
-                    handleCreateBusinessPlan(template.id);
+                    e.stopPropagation();
+                    useTemplate(template.id); // Use template on button click
                   }}
                 >
-                  {template.id === "custom" ? "Create Custom" : "Use This Template"}
+                  {template.id === "custom-template" ? "Create Custom" : "Use This Template"}
                 </button>
+              </div>
+            ))}
+            {savedTemplates.map((template) => (
+              <div
+                key={template.id}
+                className="border border-neutral-200 rounded-lg p-4 cursor-pointer hover:border-primary-500 hover:shadow-sm transition duration-150 ease-in-out"
+                onClick={() => useTemplate(template.id, true, template)} // Use template on card click
+              >
+                <div className={`h-40 rounded-md bg-yellow-50 flex items-center justify-center mb-4`}>
+                  ⭐
+                </div>
+                <h3 className="text-md font-medium text-neutral-800">
+                  {template.name} (Custom)
+                </h3>
+                <p className="text-sm text-neutral-500 mt-1">
+                  {template.description}
+                </p>
+                {expandedTemplateId === template.id && (
+                  <div className="mt-2">
+                    <p className="text-sm text-neutral-600">{template.description}</p>
+                    {template.sections && template.sections.length > 0 && (
+                      <ul className="list-disc pl-5 mt-2 text-sm text-neutral-600">
+                        {template.sections.map((section, index) => (
+                          <li key={index}>{section}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {template.sections && template.sections.length === 0 && (
+                      <p className="text-sm text-neutral-600">No sections defined.</p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -217,7 +224,9 @@ export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
               <Input
                 id="template-name"
                 value={customTemplate.name}
-                onChange={(e) => setCustomTemplate({...customTemplate, name: e.target.value})}
+                onChange={(e) =>
+                  setCustomTemplate({ ...customTemplate, name: e.target.value })
+                }
                 placeholder="E.g., Retail Business Plan"
               />
             </div>
@@ -226,36 +235,50 @@ export default function PlanTemplates({ onSelect }: PlanTemplatesProps) {
               <Input
                 id="template-description"
                 value={customTemplate.description}
-                onChange={(e) => setCustomTemplate({...customTemplate, description: e.target.value})}
+                onChange={(e) =>
+                  setCustomTemplate({
+                    ...customTemplate,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="A brief description of your template"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="template-sections">
-                Sections (one per line)
-              </Label>
+              <Label htmlFor="template-sections">Sections (one per line)</Label>
               <Textarea
                 id="template-sections"
-                value={customTemplate.sections}
-                onChange={(e) => setCustomTemplate({...customTemplate, sections: e.target.value})}
+                value={customTemplate.sections.join("\n")}
+                onChange={(e) =>
+                  setCustomTemplate({
+                    ...customTemplate,
+                    sections: e.target.value.split("\n"),
+                  })
+                }
                 placeholder="Executive Summary&#10;Company Overview&#10;Market Analysis&#10;..."
                 className="min-h-[150px]"
               />
-              <p className="text-xs text-neutral-500">Enter each section name on a new line</p>
+              <p className="text-xs text-neutral-500">
+                Enter each section name on a new line
+              </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCustomForm(false)}>Cancel</Button>
-            <Button 
-                type="submit" 
-                className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
-                style={{ display: 'block' }}
-              >
-                Save
-              </Button>
+            <Button variant="outline" onClick={() => setShowCustomForm(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-4 relative z-50"
+              onClick={handleSaveCustomTemplate}
+            >
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
-}
+};
+
+export default PlanTemplates;

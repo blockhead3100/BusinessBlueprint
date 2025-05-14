@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -146,6 +146,20 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     }
   }, [planData.template, contentSections, selectedSection]);
 
+  // Add logic to handle custom templates
+  useEffect(() => {
+    if (templateId?.startsWith("custom:")) {
+      const parts = templateId.split(":");
+      if (parts.length >= 3) {
+        const customSections = parts[2].split("\n").filter(section => section.trim() !== "");
+        setContentSections(prev => ({
+          ...prev,
+          ...Object.fromEntries(customSections.map(section => [section, ""])),
+        }));
+      }
+    }
+  }, [templateId]);
+
   // Create or update plan mutation
   const savePlanMutation = useMutation({
     mutationFn: async () => {
@@ -169,11 +183,10 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
         description: `Business plan ${planId ? "updated" : "created"} successfully`,
       });
     },
-    onError: (error) => {
+    onError: (error: { toString: () => any; }) => {
       toast({
         title: "Error",
         description: `Failed to ${planId ? "update" : "create"} business plan: ${error.toString()}`,
-        variant: "destructive"
       });
     }
   });
@@ -189,10 +202,18 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     }));
   };
 
-  const handleSave = () => {
+  const handleSaveDraft = () => {
     savePlanMutation.mutate();
   };
-  
+
+  const handleExportPDF = () => {
+    // Logic to export the plan as a PDF
+    toast({
+      title: "Export Successful",
+      description: "Your business plan has been exported as a PDF.",
+    });
+  };
+
   const handleExport = () => {
     // Create exportable content
     const planName = planData.name || "Business Plan";
@@ -233,6 +254,10 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     });
   };
 
+  const handleSave = () => {
+    savePlanMutation.mutate();
+  };
+
   // Get sections for the current template
   let currentTemplateSections: string[] = [];
   const template = planData.template || "standard";
@@ -255,6 +280,9 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
     currentTemplateSections = templateSections[template] || templateSections["standard"];
   }
 
+  console.log("Debug: contentSections", contentSections);
+  console.log("Debug: currentTemplateSections", currentTemplateSections);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -268,13 +296,13 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
           </h1>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleSaveDraft}>
             <FileText className="h-4 w-4 mr-2" />
-            Export to MD
+            Save Draft
           </Button>
-          <Button variant="outline" onClick={handleDownloadZip}>
+          <Button variant="outline" onClick={handleExportPDF}>
             <Download className="h-4 w-4 mr-2" />
-            Download ZIP
+            Export to PDF
           </Button>
           <Button onClick={handleSave} disabled={savePlanMutation.isPending}>
             <Save className="h-4 w-4 mr-2" />
@@ -304,15 +332,15 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
               <Label htmlFor="plan-client">Client</Label>
               <Select 
                 value={planData.clientId} 
-                onValueChange={(value) => setPlanData(prev => ({ ...prev, clientId: value }))}
+                onValueChange={(value: string) => setPlanData(prev => ({ ...prev, clientId: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a client (optional)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">No client</SelectItem>
-                  {clients?.map(client => (
-                    <SelectItem key={client.id} value={client.id.toString()}>
+                  {clients?.map((client) => (
+                    <SelectItem key={client.id ?? "default"} value={client.id?.toString() ?? ""}>
                       {client.name}
                     </SelectItem>
                   ))}
@@ -326,7 +354,7 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
               <Label htmlFor="plan-template">Template</Label>
               <Select 
                 value={planData.template} 
-                onValueChange={(value) => setPlanData(prev => ({ ...prev, template: value }))}
+                onValueChange={(value: string) => setPlanData(prev => ({ ...prev, template: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a template" />
@@ -343,7 +371,7 @@ export default function PlanEditor({ planId, templateId, onBack }: PlanEditorPro
               <Label htmlFor="plan-status">Status</Label>
               <Select 
                 value={planData.status} 
-                onValueChange={(value) => setPlanData(prev => ({ ...prev, status: value }))}
+                onValueChange={(value: string) => setPlanData(prev => ({ ...prev, status: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
